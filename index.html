@@ -1,122 +1,67 @@
-
-<?php include "../inc/dbinfo.inc"; ?>
+<!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+ 
+    <style>
+    body {
+        background-image: url('image.jpg');
+        background-size: cover;
+        background-position: center;
+    }
+    label, button {
+        color: #FF9900;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin-left: 40px;
+    }
+    input {
+        color: #232F3E;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin-left: 20px;
+    }
+    </style>
+
+    <script>
+    function callAPI() {
+        var firstName = document.getElementById('fName').value;
+        var lastName = document.getElementById('lName').value;
+        var data = {
+            firstName: firstName,
+            lastName: lastName
+        };
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+        fetch('https://nfxg0utou4.execute-api.us-west-2.amazonaws.com/dev/user', requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                // Process the API response
+                console.log(result);
+                alert('API response: ' + JSON.stringify(result));
+            })
+            .catch(error => {
+                // Handle any errors that occurred during the API request
+                console.error(error);
+                alert('API request failed. Error: ' + error);
+            });
+    }
+    </script>
+</head>
+
 <body>
-<h1>Sample page</h1>
-<?php
-
-  /* Connect to MySQL and select the database. */
-  $connection = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD);
-
-  if (mysqli_connect_errno()) echo "Failed to connect to MySQL: " . mysqli_connect_error();
-
-  $database = mysqli_select_db($connection, DB_DATABASE);
-
-  /* Ensure that the EMPLOYEES table exists. */
-  VerifyEmployeesTable($connection, DB_DATABASE);
-
-  /* If input fields are populated, add a row to the EMPLOYEES table. */
-  $employee_name = htmlentities($_POST['NAME']);
-  $employee_address = htmlentities($_POST['ADDRESS']);
-
-  if (strlen($employee_name) || strlen($employee_address)) {
-    AddEmployee($connection, $employee_name, $employee_address);
-  }
-?>
-
-<!-- Input form -->
-<form action="<?PHP echo $_SERVER['SCRIPT_NAME'] ?>" method="POST">
-  <table border="0">
-    <tr>
-      <td>NAME</td>
-      <td>ADDRESS</td>
-    </tr>
-    <tr>
-      <td>
-        <input type="text" name="NAME" maxlength="45" size="30" />
-      </td>
-      <td>
-        <input type="text" name="ADDRESS" maxlength="90" size="60" />
-      </td>
-      <td>
-        <input type="submit" value="Add Data" />
-      </td>
-    </tr>
-  </table>
-</form>
-
-<!-- Display table data. -->
-<table border="1" cellpadding="2" cellspacing="2">
-  <tr>
-    <td>ID</td>
-    <td>NAME</td>
-    <td>ADDRESS</td>
-  </tr>
-
-<?php
-
-$result = mysqli_query($connection, "SELECT * FROM EMPLOYEES");
-
-while($query_data = mysqli_fetch_row($result)) {
-  echo "<tr>";
-  echo "<td>",$query_data[0], "</td>",
-       "<td>",$query_data[1], "</td>",
-       "<td>",$query_data[2], "</td>";
-  echo "</tr>";
-}
-?>
-
-</table>
-
-<!-- Clean up. -->
-<?php
-
-  mysqli_free_result($result);
-  mysqli_close($connection);
-
-?>
-
+    <form>
+        <label>First Name:</label>
+        <input type="text" id="fName">
+        <label>Last Name:</label>
+        <input type="text" id="lName">
+        <button type="button" onclick="callAPI()">Submit</button>
+    </form>
 </body>
 </html>
-
-
-<?php
-
-/* Add an employee to the table. */
-function AddEmployee($connection, $name, $address) {
-   $n = mysqli_real_escape_string($connection, $name);
-   $a = mysqli_real_escape_string($connection, $address);
-
-   $query = "INSERT INTO EMPLOYEES (NAME, ADDRESS) VALUES ('$n', '$a');";
-
-   if(!mysqli_query($connection, $query)) echo("<p>Error adding employee data.</p>");
-}
-
-/* Check whether the table exists and, if not, create it. */
-function VerifyEmployeesTable($connection, $dbName) {
-  if(!TableExists("EMPLOYEES", $connection, $dbName))
-  {
-     $query = "CREATE TABLE EMPLOYEES (
-         ID int(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-         NAME VARCHAR(45),
-         ADDRESS VARCHAR(90)
-       )";
-
-     if(!mysqli_query($connection, $query)) echo("<p>Error creating table.</p>");
-  }
-}
-
-/* Check for the existence of a table. */
-function TableExists($tableName, $connection, $dbName) {
-  $t = mysqli_real_escape_string($connection, $tableName);
-  $d = mysqli_real_escape_string($connection, $dbName);
-
-  $checktable = mysqli_query($connection,
-      "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = '$t' AND TABLE_SCHEMA = '$d'");
-
-  if(mysqli_num_rows($checktable) > 0) return true;
-
-  return false;
-}
-?>                        
-                
